@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ベンチマーク性能表</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  font-family:system-ui,sans-serif;
+  background:#f4f7ff;
+  margin:0;
+  padding:20px;
+  color:#222;
+}
+h1,h2{
+  text-align:center;
+}
+table{
+  width:100%;
+  max-width:1000px;
+  margin:20px auto;
+  border-collapse:collapse;
+  background:#fff;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
+th,td{
+  padding:12px;
+  text-align:center;
+}
+th{
+  background:#4a7dff;
+  color:#fff;
+}
+tr:nth-child(even){
+  background:#f2f6ff;
+}
+.badge{
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  color:#fff;
+}
+.low{background:#777;}
+.mid{background:#3fa9f5;}
+.high{background:#0a8a00;}
+.pro{background:#9c27b0;}
+</style>
+</head>
+<body>
+
+<h1>🎮 ベンチマーク性能指標表</h1>
+
+<!-- GPU TOTAL -->
+<h2>🎨 GPU TOTAL（100点刻み）</h2>
+<table>
+<tr>
+  <th>GPU TOTAL</th>
+  <th>性能クラス</th>
+  <th>Valorant</th>
+  <th>Fortnite</th>
+  <th>GPU目安</th>
+</tr>
+<tr><td>0–199</td><td><span class="badge low">超低</span></td><td>起動困難</td><td>不可</td><td>旧内蔵GPU</td></tr>
+<tr><td>200–299</td><td><span class="badge low">低</span></td><td>&lt;60fps</td><td>30fps</td><td>HD / Vega</td></tr>
+<tr><td>300–399</td><td><span class="badge mid">下位</span></td><td>60–100fps</td><td>低</td><td>GTX 1050</td></tr>
+<tr><td>400–499</td><td><span class="badge mid">下中位</span></td><td>120fps</td><td>中</td><td>GTX 1650</td></tr>
+<tr><td>500–599</td><td><span class="badge mid">中位</span></td><td>144fps</td><td>中</td><td>GTX 1060</td></tr>
+<tr><td>600–699</td><td><span class="badge high">中上位</span></td><td>200fps</td><td>高</td><td>GTX 1660</td></tr>
+<tr><td>700–799</td><td><span class="badge high">上位</span></td><td>240fps</td><td>高</td><td>RTX 2060</td></tr>
+<tr><td>800–899</td><td><span class="badge high">高性能</span></td><td>300fps</td><td>最高</td><td>RTX 3060</td></tr>
+<tr><td>900–999</td><td><span class="badge pro">超高性能</span></td><td>360fps</td><td>最高+</td><td>RTX 3070</td></tr>
+<tr><td>1000+</td><td><span class="badge pro">プロ級</span></td><td>500fps</td><td>Epic</td><td>RTX 4070+</td></tr>
+</table>
+
+<!-- CPU SCORE -->
+<h2>🧠 CPU SCORE（100点刻み）</h2>
+<table>
+<tr>
+  <th>CPU SCORE</th>
+  <th>クラス</th>
+  <th>Valorant</th>
+  <th>Fortnite</th>
+  <th>CPU目安</th>
+</tr>
+<tr><td>0–99</td><td>非対応</td><td>不可</td><td>不可</td><td>超旧世代</td></tr>
+<tr><td>100–199</td><td>低</td><td>60fps</td><td>30fps</td><td>i5-3470</td></tr>
+<tr><td>200–299</td><td>下位</td><td>120fps</td><td>60fps</td><td>Ryzen 5 1600</td></tr>
+<tr><td>300–399</td><td>中位</td><td>200fps</td><td>100fps</td><td>Ryzen 5 3600</td></tr>
+<tr><td>400–499</td><td>中上位</td><td>240fps</td><td>144fps</td><td>i5-12400</td></tr>
+<tr><td>500–599</td><td>高性能</td><td>300fps</td><td>200fps</td><td>Ryzen 7 5800X</td></tr>
+<tr><td>600–699</td><td>超高性能</td><td>360fps</td><td>240fps</td><td>i7-13700K</td></tr>
+<tr><td>700+</td><td>競技用</td><td>500fps</td><td>300fps</td><td>X3D / i9</td></tr>
+</table>
+
+<!-- TOTAL -->
+<h2>🏆 TOTAL SCORE（総合）</h2>
+<table>
+<tr>
+  <th>TOTAL</th>
+  <th>評価</th>
+  <th>Valorant</th>
+  <th>Fortnite</th>
+  <th>コメント</th>
+</tr>
+<tr><td>0–299</td><td>非推奨</td><td>不可</td><td>不可</td><td>買い替え推奨</td></tr>
+<tr><td>300–399</td><td>最低限</td><td>60fps</td><td>30fps</td><td>低設定</td></tr>
+<tr><td>400–499</td><td>標準</td><td>120fps</td><td>60fps</td><td>フルHD</td></tr>
+<tr><td>500–599</td><td>快適</td><td>144fps</td><td>高</td><td>競技可</td></tr>
+<tr><td>600–699</td><td>高性能</td><td>240fps</td><td>高</td><td>配信可</td></tr>
+<tr><td>700–799</td><td>超高性能</td><td>360fps</td><td>最高</td><td>大会OK</td></tr>
+<tr><td>800+</td><td>プロ級</td><td>500fps</td><td>Epic</td><td>最強クラス</td></tr>
+</table>
+
+</body>
+</html>
