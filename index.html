@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Esports Benchmark</title>
+<title>Esports Benchmark Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -15,7 +15,7 @@ body{
 }
 h1{margin-top:20px;}
 button{
-  padding:14px 26px;
+  padding:14px 28px;
   font-size:16px;
   border:none;
   border-radius:12px;
@@ -24,7 +24,7 @@ button{
   cursor:pointer;
 }
 #panel{
-  max-width:760px;
+  max-width:900px;
   margin:20px auto;
   background:#fff;
   border-radius:18px;
@@ -34,46 +34,25 @@ button{
 .scoreBox{
   display:flex;
   justify-content:space-around;
-  margin-top:15px;
+  margin:15px 0;
 }
 .score{
-  background:#f2f6ff;
-  padding:15px;
-  border-radius:14px;
   width:30%;
+  background:#f2f6ff;
+  border-radius:14px;
+  padding:12px;
 }
 .score b{font-size:22px;}
-#log{text-align:left;margin-top:15px;font-size:14px;}
-canvas{display:block;margin:20px auto;border-radius:12px}
-
-/* モーダル */
-#modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  display:none;
-  align-items:center;
-  justify-content:center;
-}
-#modalContent{
-  background:#fff;
-  max-width:600px;
-  width:90%;
-  border-radius:16px;
-  padding:20px;
-  text-align:left;
-}
-.close{
-  float:right;
-  cursor:pointer;
-  font-weight:bold;
-}
+#detail{text-align:left;font-size:14px;}
+canvas{margin:20px auto;display:block;border-radius:12px;}
+.warn{color:#d40000;font-weight:bold;}
+.ok{color:#0a8a00;font-weight:bold;}
 </style>
 </head>
 <body>
 
-<h1>🎮 Esports Benchmark</h1>
-<p>CPU / GPU / ゲーム適正チェック</p>
+<h1>🎮 Esports Benchmark Pro</h1>
+<p>世界基準クラス Webベンチマーク</p>
 <button id="start">ベンチマーク開始</button>
 
 <div id="panel">
@@ -83,51 +62,42 @@ canvas{display:block;margin:20px auto;border-radius:12px}
     <div class="score">TOTAL<br><b id="totalScore">-</b></div>
   </div>
 
-  <button style="margin-top:15px" onclick="openModal()">詳しく見る</button>
-  <div id="log">待機中</div>
-</div>
-
-<!-- モーダル -->
-<div id="modal">
-  <div id="modalContent">
-    <span class="close" onclick="closeModal()">✕</span>
-    <h2>📊 詳細情報</h2>
-    <div id="detail"></div>
-  </div>
+  <canvas id="graph" width="800" height="200"></canvas>
+  <div id="detail">待機中</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script>
-const log=t=>document.getElementById("log").innerHTML+= "<br>"+t;
 
+<script>
 // =======================
-// CPU ベンチ
+// CPU ベンチ（シングル寄り）
 // =======================
-function cpuTest(){
+function cpuBench(){
   const start=performance.now();
   let x=0;
-  for(let i=0;i<2e7;i++){
+  for(let i=0;i<3e7;i++){
     x+=Math.sin(i);
   }
-  return Math.round(200000/(performance.now()-start));
+  return 200000/(performance.now()-start);
 }
 
 // =======================
-// GPU ベンチ（簡略）
-let renderer,scene,camera,cubes=[];
-async function gpuTest(){
-  return new Promise(res=>{
-    renderer=new THREE.WebGLRenderer();
-    renderer.setSize(360,360);
+// GPU ベンチ + フレーム解析
+// =======================
+async function gpuBench(){
+  return new Promise(resolve=>{
+    const renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(400,400);
     document.body.appendChild(renderer.domElement);
 
-    scene=new THREE.Scene();
-    camera=new THREE.PerspectiveCamera(60,1,0.1,100);
-    camera.position.z=20;
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(60,1,0.1,200);
+    camera.position.z=25;
     scene.add(new THREE.AmbientLight(0xffffff));
 
     const geo=new THREE.BoxGeometry();
-    for(let i=0;i<600;i++){
+    const cubes=[];
+    for(let i=0;i<800;i++){
       const c=new THREE.Mesh(
         geo,
         new THREE.MeshStandardMaterial({color:Math.random()*0xffffff})
@@ -141,15 +111,27 @@ async function gpuTest(){
       cubes.push(c);
     }
 
-    let frames=0,start=performance.now();
+    const frames=[];
+    let last=performance.now();
+    const start=last;
+
     function loop(){
-      cubes.forEach(c=>c.rotation.x+=0.01);
+      const now=performance.now();
+      frames.push(now-last);
+      last=now;
+
+      cubes.forEach(c=>{
+        c.rotation.x+=0.01;
+        c.rotation.y+=0.02;
+      });
+
       renderer.render(scene,camera);
-      frames++;
-      if(performance.now()-start<4000){
+
+      if(now-start<6000){
         requestAnimationFrame(loop);
       }else{
-        res(Math.round(frames*25));
+        document.body.removeChild(renderer.domElement);
+        resolve(frames.slice(5)); // 初期揺れ除外
       }
     }
     loop();
@@ -157,59 +139,92 @@ async function gpuTest(){
 }
 
 // =======================
-// 実行
+// 統計
 // =======================
-let cpuS,gpuS;
-document.getElementById("start").onclick=async()=>{
-  document.getElementById("log").innerHTML="";
-  cpuS=cpuTest();
-  log("CPU計測完了");
-
-  gpuS=await gpuTest();
-  log("GPU計測完了");
-
-  const total=Math.round(cpuS*0.4+gpuS*0.6);
-
-  cpuScore.innerText=cpuS;
-  gpuScore.innerText=gpuS;
-  totalScore.innerText=total;
-
-  buildDetail(cpuS,gpuS,total);
-};
-
-// =======================
-// 詳細生成
-// =======================
-function buildDetail(cpu,gpu,total){
-  const cores=navigator.hardwareConcurrency||"?";
-  const gl=document.createElement("canvas").getContext("webgl");
-  const gpuName=gl.getParameter(gl.RENDERER);
-
-  const valOK=gpu>9000?"◎":gpu>6000?"○":"△";
-  const fnOK=gpu>12000?"◎":gpu>8000?"○":"△";
-
-  document.getElementById("detail").innerHTML=`
-<b>🧠 CPU</b><br>
-スコア: ${cpu}<br>
-コア数: ${cores}<br><br>
-
-<b>🎨 GPU</b><br>
-${gpuName}<br>
-スコア: ${gpu}<br><br>
-
-<b>🎮 ゲーム適正</b><br>
-Valorant: ${valOK}（144Hz ${gpu>6000?"可":"不可"}）<br>
-Fortnite: ${fnOK}（中設定 ${gpu>8000?"可":"不可"}）<br><br>
-
-<b>⚙ 推奨</b><br>
-競技FPS向け: ${total>10000?"◎":"○"}<br>
-240Hz適性: ${gpu>12000?"◎":"△"}
-`;
+function percentile(arr,p){
+  const s=[...arr].sort((a,b)=>a-b);
+  return s[Math.floor(s.length*p)];
 }
 
 // =======================
-function openModal(){modal.style.display="flex";}
-function closeModal(){modal.style.display="none";}
+// GPU Tier 推定
+// =======================
+function gpuTier(avgFPS){
+  if(avgFPS>240) return "RTX 4070 / RX 7800 XT 級";
+  if(avgFPS>180) return "RTX 3060 / RX 6700 XT 級";
+  if(avgFPS>120) return "GTX 1660 / RX 5600 XT 級";
+  if(avgFPS>60) return "GTX 1060 / RX 580 級";
+  return "エントリーGPU";
+}
+
+// =======================
+// グラフ描画
+// =======================
+function drawGraph(frames){
+  const ctx=document.getElementById("graph").getContext("2d");
+  ctx.clearRect(0,0,800,200);
+
+  ctx.fillStyle="#eaf0ff";
+  ctx.fillRect(0,0,800,200);
+
+  ctx.strokeStyle="#4a7dff";
+  ctx.beginPath();
+
+  frames.slice(0,800).forEach((v,i)=>{
+    const x=i;
+    const y=200-(v*4);
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+// =======================
+// 実行
+// =======================
+document.getElementById("start").onclick=async()=>{
+  detail.innerHTML="計測中…";
+
+  const cpu=cpuBench();
+  cpuScore.innerText=Math.round(cpu);
+
+  const frames=await gpuBench();
+  drawGraph(frames);
+
+  const avgFT=frames.reduce((a,b)=>a+b,0)/frames.length;
+  const avgFPS=1000/avgFT;
+  const low1=1000/percentile(frames,0.99);
+  const low01=1000/percentile(frames,0.999);
+
+  const gpuScore=Math.round(avgFPS*150);
+  gpuScoreElem.innerText=gpuScore;
+
+  const total=Math.round(cpu*0.4+gpuScore*0.6);
+  totalScore.innerText=total;
+
+  // CPUボトルネック
+  const cpuFrame=1000/(cpu/100);
+  const bottleneck=cpuFrame>avgFT*1.2;
+
+  detail.innerHTML=`
+<b>🎞 フレーム解析</b><br>
+平均FPS: ${avgFPS.toFixed(1)}<br>
+1% Low: ${low1.toFixed(1)}<br>
+0.1% Low: ${low01.toFixed(1)}<br><br>
+
+<b>🧠 CPU</b><br>
+スコア: ${Math.round(cpu)}<br>
+${bottleneck?'<span class="warn">⚠ CPUボトルネック検出</span>':'<span class="ok">GPU主導</span>'}<br><br>
+
+<b>🎨 GPU 推定</b><br>
+${gpuTier(avgFPS)}<br><br>
+
+<b>🎮 実戦評価</b><br>
+Valorant: ${avgFPS>240?"240Hz安定":avgFPS>144?"144Hz安定":"要設定調整"}<br>
+Fortnite: ${avgFPS>120?"高設定可":avgFPS>60?"中設定":"低設定"}
+`;
+};
 </script>
+
 </body>
-  </html>
+</html>
