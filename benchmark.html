@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>GPU Benchmark - WebGL / three.js</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: linear-gradient(135deg, #f8fbff, #e6f0ff);
+  color: #222;
+  text-align: center;
+}
+
+h1 {
+  margin-top: 20px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 14px 30px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+  background: #4f8cff;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+#panel {
+  max-width: 640px;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+#log {
+  font-size: 15px;
+  text-align: left;
+  margin-top: 10px;
+}
+
+canvas {
+  display: block;
+  margin: 20px auto;
+  border-radius: 12px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎮 GPU ベンチマーク</h1>
+<p>WebGL / three.js による実描画測定</p>
+
+<button id="start">ベンチマーク開始</button>
+
+<div id="panel">
+  <div id="log">待機中</div>
+</div>
+
+<!-- three.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+const log = msg => {
+  document.getElementById("log").innerHTML += "<br>" + msg;
+};
+
+let renderer, scene, camera;
+let cubes = [];
+let frames = 0;
+let startTime = 0;
+
+document.getElementById("start").onclick = () => {
+  document.getElementById("log").innerHTML = "初期化中…";
+  document.getElementById("start").disabled = true;
+  init();
+  runBenchmark();
+};
+
+// =====================
+// 初期化
+// =====================
+function init() {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(360, 360);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf0f4ff);
+
+  camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  camera.position.z = 10;
+
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(5, 10, 5);
+  light.castShadow = true;
+  scene.add(light);
+
+  const ambient = new THREE.AmbientLight(0xcccccc);
+  scene.add(ambient);
+
+  // 負荷用キューブ大量生成
+  const geo = new THREE.BoxGeometry();
+  for (let i = 0; i < 400; i++) {
+    const mat = new THREE.MeshStandardMaterial({
+      color: Math.random() * 0xffffff
+    });
+    const cube = new THREE.Mesh(geo, mat);
+    cube.position.set(
+      (Math.random() - 0.5) * 10,
+      (Math.random() - 0.5) * 10,
+      (Math.random() - 0.5) * 10
+    );
+    cube.castShadow = true;
+    scene.add(cube);
+    cubes.push(cube);
+  }
+}
+
+// =====================
+// ベンチ実行
+// =====================
+function runBenchmark() {
+  frames = 0;
+  startTime = performance.now();
+
+  function animate() {
+    cubes.forEach(c => {
+      c.rotation.x += 0.01;
+      c.rotation.y += 0.02;
+    });
+
+    renderer.render(scene, camera);
+    frames++;
+
+    if (performance.now() - startTime < 5000) {
+      requestAnimationFrame(animate);
+    } else {
+      finish();
+    }
+  }
+
+  animate();
+}
+
+// =====================
+// 結果
+// =====================
+function finish() {
+  const duration = (performance.now() - startTime) / 1000;
+  const fps = frames / duration;
+  const frameTime = 1000 / fps;
+  const score = Math.round(fps * 100);
+
+  log("<hr>");
+  log(`⏱ 測定時間: ${duration.toFixed(2)} 秒`);
+  log(`🎞 平均FPS: ${fps.toFixed(1)}`);
+  log(`📉 フレーム時間: ${frameTime.toFixed(2)} ms`);
+  log(`<b>⭐ GPUスコア: ${score}</b>`);
+
+  document.getElementById("start").disabled = false;
+}
+</script>
+
+</body>
+</html>
